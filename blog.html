@@ -21,6 +21,17 @@
             min-height: 100vh; /* ensures wrapper fills viewport */
         }
 
+        .blog-card {
+            width: 500px;
+            padding: 20px;
+            /* border: 1px solid black; */
+            text-align: start;
+        }
+
+        .blog-card a:hover {
+            text-decoration: 2px underline grey;
+        }
+
         .networks ul {
             padding: 0;
             display: flex;
@@ -32,21 +43,20 @@
             flex: 1;
         }
 
-        nav {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            /* border: 1px solid black; */
-        }
-
         a {
             text-decoration: none;
             color: black;
         }
 
-
         ul {
             list-style: none;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            /* border: 1px solid black; */
         }
 
         footer {
@@ -57,15 +67,12 @@
         }
 
         section {
-            display: flex;
-            /* border: 1px solid black; */
-            margin: 0 200px 0 200px;
-        }
-
-        article {
+            padding: 50px;
             display: flex;
             flex-direction: column;
-            align-items: start;            
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
     </style>
 </head>
@@ -76,38 +83,17 @@
                 <h1>Lazar Zivanovic</h1>
                 <ul>
                     <li>
-                        <a href="blog.html">blog</a>
+                        <a href="index.html">home</a>
                     </li>
                 </ul>
             </nav>
             <section>
-                <article>
-                    <h2>About me</h2>
-                    <p>
-                        I am AI research engineer and masters student currently pursuing degree in Software Engineering and Artificial Intelligence.   
-                        <br>
-                        <br>
-                        Few reasons why I decided to start this blog:   
-                        <br>    
-                            - I want to improve and deepen my knowledge by explaining CS concepts to others
-                        <br>
-                            - I want to give back to the community and I hope that somebody will find this useful
-                        <br>
-                        <br>
-                        Prior to entering the world of computer science I had a dream of becoming a basketball player. 
-                        As a 15 year old kid I got a chance to leave my home in Serbia and go to distant Spain where I played for Real Madrid. 
-                        After a year I was back to Serbia where I played for Red Star. 
-                        Next stop was US, Los Angeles, where I was given a full scholarship at the LMU, D1 school, where I was a part of basketball team and applied math major.
-                        This was an amazing journey but it came to an end. 
-                        Today, I try to bring the same hardworking mindset and competitive spirit I developed in sports to computer science.
-                        I hope that through this blog I will get a chance to meet new people who share the same passions as I do.
-                        <br>
-                        <br>
-                        I will not use AI for generating any of the content that I will post here. I want this content to be authentic and raw.
-                        <br>
-                        <br>
-                    </p>
-                </article>
+                <div class="blog-card">
+                    <a href="blogs/init_blog.html">
+                    <h2>Blog name</h2>
+                    <p>Short blog description</p>
+                    </a>
+                </div>       
             </section>
         </main>
         <footer>
