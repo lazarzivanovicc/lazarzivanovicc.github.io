@@ -9,6 +9,7 @@
     <script id="MathJax-script" async
           src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
     </script>
+    <link rel="icon" type="image/png" href="assets/lz3.png">
     <title>lazarzivanovicc</title>
     <style>
         html, body {
@@ -62,16 +63,16 @@
 
         section {
             display: flex;
-            margin: 0 auto;
-            max-width: 900px;
-            padding: 0 16px; 
-            box-sizing: border-box;
+            flex-direction: column;
+            align-items: start; 
         }
 
         article {
             display: flex;
-            flex-direction: column;
-            align-items: start;            
+            margin: 0 auto;
+            max-width: 900px;
+            padding: 0 16px; 
+            box-sizing: border-box;           
         }
         
         p {
@@ -91,11 +92,15 @@
                     </li>
                 </ul>
             </nav>
-            <section>
-                <article>
+            <article>
+                <section>
+                    
+                    <div style="width: 110px; height: 110px; background-color: #ddd; border-radius: 50%; margin: 20px 0; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                        <img src="assets/profile_photo.png" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
                     <h2>About me</h2>
                     <p>
-                        I am an AI research engineer and a master's student currently pursuing a degree in Software Engineering and Artificial Intelligence.   
+                        I am an AI research engineer and a PhD student currently pursuing a degree in Software Engineering and Artificial Intelligence.   
                         <br>
                         <br>
                         A few reasons why I decided to start this blog:  
@@ -118,8 +123,8 @@
                         <br>
                         <br>
                     </p>
-                </article>
-            </section>
+                </section>
+            </article>
         </main>
         <footer>
             <div>
