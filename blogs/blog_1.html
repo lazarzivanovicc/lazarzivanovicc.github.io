@@ -140,7 +140,7 @@
                             </li>
                             <li><a href="#implementation">4 Implementation and Analysis</a>
                                 <ul style="margin-left: 0rem; list-style-type: none;">
-                                    <li><a href="#gpt2-code">4.1 GPT 2 Code Overview</a></li>
+                                    <li><a href="#gpt2code">4.1 GPT 2 Code Overview</a></li>
                                     <li><a href="#attention-impl">4.2 Attention Mechanisms</a></li>
                                     <li><a href="#normalization">4.3 Normalization Techniques</a></li>
                                     <li><a href="#positional">4.4 Position Encoding</a></li>
@@ -750,7 +750,7 @@
                     <p>
                         This chapter deals with the implementation and analysis of components of large language models. All components are implemented using a deep learning framework called PyTorch (Paszke et al., 2017, 2019). The GPT-2 and Llama 3.2 model architectures were completely reimplemented for the purposes of this article. Certain components such as the singular attention head will be implemented independently of the model and are used for demonstration purposes.
                     </p>
-                    <h3 id="gpt-2code">4.1 High level code overview of GPT 2</h3>
+                    <h3 id="gpt2code">4.1 High level code overview of GPT 2</h3>
                     <div style="width: 100%; display: flex; justify-content: center; overflow-x: auto; padding: 0 1rem; background-color: rgba(224, 224, 224, 0.633); border-radius: 10px;">
                     <pre style="max-width: 100%; white-space: pre-wrap; word-break: break-word;padding: 1rem;"><code>
                         class GPT(nn.Module):
@@ -1134,7 +1134,7 @@
                                 return x_normalized.to(dtype=x.dtype)
                         </code></pre>
                     </div>
-                    <h3>4.2.2 RMSNorm</h3>
+                    <h3>4.3.2 RMSNorm</h3>
                     <div style="width: 100%; display: flex; justify-content: center; overflow-x: auto; padding: 0 1rem; background-color: rgba(224, 224, 224, 0.633); border-radius: 10px;">
                     <pre style="max-width: 100%; white-space: pre-wrap; word-break: break-word;padding: 1rem;"><code>
                         class RMSNormLayer(nn.Module):
@@ -1156,11 +1156,11 @@
                                 return (x_normalized * self.weight).to(dtype=x.dtype)
                         </code></pre>
                     </div>
-                    <h2 id="positional">4.3 Implementation and analysis of different position encoding mechanisms</h2>
+                    <h2 id="positional">4.4 Implementation and analysis of different position encoding mechanisms</h2>
                     <p>
                         Transformer creates context-aware vector representations through its attention mechanism, and in order to achieve this effectively, it is necessary to pass its position to the attention module with each token. Without information about the position, the transformer would not be able to distinguish the same words or tokens, which are located in different positions in the sequence, and would produce equal vector representations for them, which is not desirable. Let's look at the sentence "The dog chased the dog" and notice that the first dog is the subject that performs an action on the second dog, which is the object in this sentence. Without information about the order in the sequence or the position of each token, the vector representation of this sequence would contain two identical vectors referring to the same word, and the model would not be able to recognize the difference between the subject and the object in this sentence. In order to avoid situations similar to the one mentioned above, layers responsible for entering, or encoding, information about the position of each token are introduced into the transformer architecture.
                     </p>
-                    <h3>4.3.1 Encoding information using sinusoidal functions</h3>
+                    <h3>4.4.1 Encoding information using sinusoidal functions</h3>
                     <p>
                         The original transformer introduced sinusoidal embeddings and relies on a table of values that is calculated using information about the position of the tokens in the sequence, the vector component indices, and the sinusoidal functions. The basic idea is that the lower indices of the components of the semantic vectors correspond to high-frequency sinusoidal waves capable of capturing small changes in context, while the higher indices correspond to lower-frequency waves that retain information that is unique. It is important to note that in this way the number of model parameters is reduced because this way of encoding does not require the model to learn the table during training, but it can be calculated based on the characteristics of the architecture. After creating a table containing information related to each possible position in the sequence, the authors of the original transformer decided to add, based on the position in the sequence, to the semantic embedding of tokens obtained from the embedding layer, the corresponding vector found in the table of sine function values that we previously calculated. In this way, successful propagation of token position data through further layers of the model is ensured.
                     </p>
@@ -1185,11 +1185,11 @@
                     <p style="width: 100%; display: flex; justify-content: center;">
                         Figure 18: Sinusoidal embedding table - Rows represent position of a token in a sequence while columns represent dimension of an embedding vector
                     </p>
-                    <h3>4.3.2 Incorporating Positional Information via trainable parameters</h3>
+                    <h3>4.4.2 Incorporating Positional Information via trainable parameters</h3>
                     <p>
                         Another way to inject positional information is by using parameters learned during training. By using a linear layer of appropriate dimensions, it is possible to obtain a matrix containing vectors that carry positional information. By adding the appropriate position vector to the semantic vector, efficient association of positional information is achieved, which is further propagated through the model. This type of positional encoding is used in the GPT-2 model.
                     </p>
-                    <h3>4.3.3 RoPE</h3>
+                    <h3>4.4.3 RoPE</h3>
                     <p>
                         Llama uses an approach called RoPE (Rotary Positional Encoding) presented in a paper called RoFormer (Su et al., 2021). The main idea of this work was that instead of adding information to the semantic vector, it is actually rotated. In this way, the original semantic vector, i.e. its magnitude is completely preserved, and its components are rotated depending on the position and index in the vector. Essentially this work is an extension of sinusoidal embeddings, but instead of adding a newly calculated vector, we use sinusoidal functions, positions and indices to calculate the corresponding element of the rotation matrix. Each of the embeddings is primarily divided into pairs of its components, to which the rotation matrix in is then applied R2. Smaller indices will be rotated faster relative to the bigger indices so the idea from sinusoidal embeddings is retained (smaller indeces oscillate faster while the bigger ones oscillate slower). Since pairs of coordinates from a vector can be viewed as complex numbers, and rotation as multiplication by a complex number, different ways of implementing this module can be encountered. In particular, I first stuck to the implementation proposed in the original paper where I used pairs of adjacent vector components, however this did not give good results because Llama was actually trained to split the original input vector into two equal halves and then match the elements at the same indices within those two newly created vectors. Also, it should be noted that this rotation is actually applied within the attention module to queries and keys before the actual calculation of attention.
                     </p>
@@ -1268,7 +1268,7 @@
                             return x_rotated.to(dtype=x.dtype)
                     </code></pre>
                     </div>
-                    <h2 id="mlp">4.4 Implementation and analysis of MLPs present in large language models</h2>
+                    <h2 id="mlp">4.5 Implementation and analysis of MLPs present in large language models</h2>
                     <p>
                         The total number of parameters of the smallest model from the GPT-2 series is 124,439,808.
                         If we look at the transformer block, more precisely the multilayer perceptron within this block, we can see that it has 4,722,432 parameters. The smallest model from the GPT-2 series has 12 sequential transformer blocks, and the number of parameters of multilayer perceptrons from transformer blocks actually amounts to 56,669,184, which is about 45% of the total number of parameters of the entire model.
@@ -1282,11 +1282,11 @@
                     <p style="width: 100%; display: flex; justify-content: center;">
                         Figure 19: Different activation functions used in LLMs
                     </p>
-                    <h3>4.4.1 Mixture of Experts</h3>
+                    <h3>4.5.1 Mixture of Experts</h3>
                     <p>
                         The Mixture of Experts module was not invented by DeepSeek, but they are the ones who made it popular. The MoE module replaces the traditional MLP found in a transformer block and introduces experts instead. Each expert is an MLP, so MoE essentially replaces one large MLP module with a collection of smaller MLP modules that specialize during training. As we have seen above, the MLP appears in every transformer block and accounts for a large portion of a large language model's parameters, so replacing a single large module with a group of smaller ones actually increases the model's total parameter count. However, the main advantage of this approach is that only a small subset of experts is activated when processing each token, meaning that using an MoE layer gives the model additional parameters to store knowledge without sacrificing speed or performance during inference. A good example of a model that uses this approach is DeepSeek-V3, which has 256 experts per MoE module and a total of 671 billion parameters.
                     </p>
-                    <h3>4.4.2 Output projection layer</h3>
+                    <h3>4.5.2 Output projection layer</h3>
                     <p>
                         This is the MLP that is used to project tokens from the final hidden states of the decoder block to vocabulary space. Outputs of the MLP are called logits (unnormalized log-probabilities) and we produce one for every token i in the vocabulary V.
                         We use these logits to obtain probability distribution over the vocabulary by applying the softmax function on them. There are different decoding strategies, meaning there are different ways to choose the next token, but one possible way would be to pick the token with the highest probability as the model's prediction for the next word (or sub-word). This is called Greedy Decoding.
