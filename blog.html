@@ -5,77 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="assets/lz3.png">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="stylesheet" href="css/base.css">
+    <script defer src="js/transitions.js"></script>
     <title>lazarzivanovicc</title>
     <style>
-        html, body {
-            font-family: "Roboto Mono", monospace;
-            margin: 0;
-            height: 100%;
-            background-color: #F5F5F5;
-        }
-
-        .wrapper {
+        section {
             display: flex;
-            flex-direction: column;
-            min-height: 100vh; /* ensures wrapper fills viewport */
+            margin: 0 auto;
+            max-width: 720px;
+            padding: 0 16px;
+            box-sizing: border-box;
         }
 
         .blog-card {
             width: 550px;
             padding: 20px;
-            /* border: 1px solid black; */
             text-align: start;
             display: flex;
             align-items: flex-start;
         }
 
-        .blog-card a:hover {
-            text-decoration: 2px underline grey;
+        .blog-date {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 6px;
+            font-weight: 300;
         }
 
-        .networks ul {
-            padding: 0;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-        }
-
-        main {
-            flex: 1;
-        }
-
-        a {
-            text-decoration: none;
-            color: black;
-        }
-
-        ul {
-            list-style: none;
-        }
-
-        nav {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            /* border: 1px solid black; */
-        }
-
-        footer {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            /* border: 1px solid black; */
-        }
-
-       section {
-            display: flex;
-            margin: 0 auto;
-            max-width: 900px;
-            padding: 0 16px; 
-            box-sizing: border-box;
-        }
     </style>
 </head>
 <body>
@@ -92,10 +50,25 @@
             <section>
                 <div class="blog-card">
                     <img src="./assets/blog_1/shannon.jpg" alt="Blog image placeholder" style="width: 200px; height: max-content; margin-right: 20px; flex-shrink: 0; object-fit: cover;">
-                    <a href="blogs/blog_1.html">
-                    <h2>Large Language Models: History and Implementation</h2>
-                    <p>History of language models from Markov to GPT. Blog holds the implementations of various LLMs along with the analysis of their components.</p>
-                    </a>
+                    <div>
+                        <p class="blog-date">December 14, 2025</p>
+                        <a href="blogs/blog_1.html">
+                            <h2>Large Language Models: History and Implementation</h2>
+                            <p>History of language models from Markov to GPT. Blog holds the implementations of various LLMs along with the analysis of their components.</p>
+                        </a>
+                    </div>
+                </div>
+            </section>
+            <section>
+                <div class="blog-card">
+                    <img src="./assets/vectors.png" alt="Blog image placeholder" style="width: 200px; height: max-content; margin-right: 20px; flex-shrink: 0; object-fit: cover;">
+                    <div>
+                        <p class="blog-date">April 15, 2026</p>
+                        <a href="blogs/xsa-less-is-more.html">
+                            <h2>XSA: Less is more</h2>
+                            <p>Exclusive self-attention is simple yet seems effective way to improve model performance</p>
+                        </a>
+                    </div>
                 </div>
             </section>
         </main>
@@ -111,6 +84,11 @@
                         <li>
                             <a href="https://www.linkedin.com/in/lazarzivanovic/" target="_blank">
                                 LinkedIn
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://mndlabs.io/" target="_blank">
+                                mndlabs
                             </a>
                         </li>
                     </ul>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/python.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="stylesheet" href="../css/base.css">
+    <script defer src="../js/transitions.js"></script>
+    <link rel="stylesheet" href="../css/blog.css">
+    <title>XSA: Less is more</title>
+</head>
+<body>
+    <nav>
+        <h1>Lazar Zivanovic</h1>
+        <ul>
+            <li>
+                <a href="../blog.html">blog</a>
+            </li>
+        </ul>
+    </nav>
+    <div class="wrapper">
+        <main>
+            <a href="#top" class="back-to-top">↑</a>
+            <article>
+                <section>
+                    <h1 id="top">XSA: Less is more</h1>
+
+                    <p>
+                        Browsing through YouTube videos I came across an interesting one <a href="https://www.youtube.com/watch?v=2eZKT4H9_iQ" target="_blank">[1]</a>. An interesting idea, nice animations, and a concept that felt intuitive to me in a way. I then read the paper <a href="https://doi.org/10.48550/arXiv.2603.09078" target="_blank">[2]</a> that inspired the video. I like it, an elegant approach that, based on the paper, yields improvements with minimal changes to the attention mechanism architecture code.
+                    </p>
+
+                    <p>
+                        I decided to write a short piece as an exercise and I am giving myself two hours for it. I will try to explain the paper and the idea using abstractions that feel natural to me and help me think about what happens under the hood of a language model that is based on the decoder part of the original transformer. The structure of the blog will be as follows: I will pose a question to myself, and then try to answer it. It should be kept in mind that most of this blog will actually be based on an abstract explanation of the empirical observations presented in the paper and should therefore be taken with a grain of salt. Note that throughout the text, <b>tokens</b> and <b>words</b> are used interchangeably.
+                    </p>
+
+                    <h3>What does this paper present?</h3>
+                    <p>
+                        In one sentence, this paper introduces a small modification to the attention mechanism that makes the model better at the standard language modeling task, consistently achieving better performance than models that use standard self-attention (according to the author and his experiments, see <a href="https://doi.org/10.48550/arXiv.2603.09078" target="_blank">[2]</a> for more information).
+                    </p>
+
+                    <h3>What is the high-level idea that allowed them to achieve better performance?</h3>
+                    <p>
+                        Separation of responsibilities between the attention mechanism and the feed-forward network within the transformer block. In this way, each of the two modules uses its full capacity. Each module is responsible for its own task and does not interfere with the work of the other, so there is no ambiguity about which part of the overall work each module takes on, nor any competition between them.
+                    </p>
+
+                    <h3>What does this look like at a slightly lower level?</h3>
+                    <p>
+                        To understand this idea at a lower level we need to consider the structure of the transformer block. For the purposes of illustration and this blog, let us consider only a transformer block consisting of a Self-Attention module, an FFN (MLP) module, and 2 skip connections. We omit the normalization layers for ease of understanding.
+                    </p>
+                    <div style="width: 100%; display: flex; justify-content: center; margin: 1rem 0;">
+                        <img src="../assets/transformer_blok.png" alt="Transformer block diagram" style="max-width: 100%; height: auto;">
+                    </div>
+
+                    <h3>What is the input to that transformer block?</h3>
+                    <p>
+                        For ease of abstraction, let us assume that our imaginary transformer block is preceded by an embedding layer. The embedding layer receives token IDs, which are numerical identifiers for the byte sequences that our model uses for language modeling (these are the smallest units of language that our model is capable of predicting). The embedding matrix contains vector representations of each token (read: building block of language). These are distributed representations of their meaning (see <a href="blog_1.html">blog 1</a> for more information on this) that the neural network will use to predict the next tokens in the sequence (this is the causal language modeling task). So to summarize, the input to the transformer block is a batch of sequences of vector representations of tokens.
+                    </p>
+
+                    <h3>What is the role of the transformer block?</h3>
+                    <p>
+                        The role of the transformer block is to, based on the initial vector representations of tokens, create better context-aware vector representations that will enable easier language modeling and improve performance on all downstream tasks. We are not limited to a static vector representation of a word, we change it depending on context. Quite naturally, our understanding of a word and its meaning changes depending on the context in which it appears.
+                    </p>
+
+                    <h3>How will this be achieved?</h3>
+                    <p>
+                        The main driver of this is the attention mechanism. Vector representations of words exchange information with each other, influencing the representations of their neighbors. We use the matrices \(W_q\), \(W_k\), \(W_v\) to obtain queries, keys, and values from the current vector representations of tokens. Conceptually, it is useful to imagine the following: each token has a question it asks of the other tokens (query), a key that will be used when measuring the suitability of a potential answer (how good a value is as an answer for a query), where the similarity measure is the dot product between the key and the query. The initial vector representations will be modified based on the answers the tokens provided to each other, as well as the degree of alignment between the key and the query. The more similar the query and the key, the more information from the answer behind that key the token will incorporate into its new representation.
+                    </p>
+                    <div style="width: 100%; overflow-x: auto; text-align: center;">
+                        $$
+                        \begin{gathered}
+                        q_{i}=W_{q}x_{i},\quad k_{j}=W_{k}x_{j},\quad v_{j}=W_{v}x_{j} \\[6pt]
+                        a_{i,j}=\frac{\exp(q_{i}^{T}k_{j})}{\sum_{j'=1}^{i}\exp(q_{i}^{T}k_{j'})} \\[6pt]
+                        y_{i}=\sum_{j=1}^{i}a_{i,j}v_{j}
+                        \end{gathered}
+                        \tag{1}
+                        $$
+                    </div>
+                    <p>
+                        <b>When posing a question, each token asks itself and its predecessors.</b>
+                    </p>
+
+                    <h3>Is it okay for it to ask itself a question?</h3>
+                    <p>
+                        Yes, but the token posing the question tends to think that its own answer is the best, which leads us to a problem.
+                    </p>
+
+                    <h3>How does this lead us to a problem?</h3>
+                    <p>
+                        Tokens do not enter the exchange of information with an open mind, or potentially ask a question for which they themselves have the most suitable key, so they most influence the modification of their own representation. This is problematic because the goal of the attention mechanism is the exchange of information between tokens within the context. An effective communication mechanism should gather as much information as possible from neighboring tokens. Within the communication mechanism, a token should not be confirming its own views but rather listening to its neighbors.
+                    </p>
+
+                    <h3>What is the role of the FFN that follows the attention layer?</h3>
+                    <p>
+                        This is where the token can and should think about its own meaning, isolated from its context. Having previously gathered information from tokens in its context and accumulated it through the skip connection onto its initial representation, in the Feed Forward Network the token independently processes and integrates everything into a new context-enriched representation.
+                    </p>
+
+                    <h3>How do we enable the attention layer to serve only for gathering information from surrounding tokens without incorporating information about itself?</h3>
+                    <p>
+                        By forcing the attention mechanism to retain only information that is orthogonal to its own value vector.
+                    </p>
+                    <p>
+                        Consider \(\mathbb{R}^3\). In it there is a vector \(y_i\) representing the context-aware representation of token \(i\), and a vector \(V_i\) of its own direction, representing the answer the token gives to its own question. We want to find a new vector \(z_i\) that is as close as possible to \(y_i\) while not containing information from \(V_i\). In other words, we want to retain as much information from \(y_i\) as possible, discarding only the information related to the direction of \(V_i\). The dot product of a vector that contains no information carried by \(V_i\) and the vector \(V_i\) is 0, and it lies in the vector subspace \(\mathbb{R}^2\), the plane to which \(V_i\) is orthogonal. The vector that lies on that plane and is closest to \(y_i\) is its projection onto that plane, obtained as the difference between \(y_i\) and its projection onto the line spanned by \(V_i\).
+                    </p>
+                    <p>XSA extends (1) with a single additional step:</p>
+                    <div style="width: 100%; text-align: center;">
+                        $$
+                        z_{i}=y_{i}-\left(y_{i}^{T}v_{i}\right)\frac{v_{i}}{\|v_{i}\|^{2}_{2}} \tag{2}
+                        $$
+                    </div>
+
+                    <h3>How does this look in code?</h3>
+                    <p>
+                        Algorithm 1 from <a href="https://doi.org/10.48550/arXiv.2603.09078" target="_blank">[2]</a> shows the full multi-head causal XSA implementation as PyTorch-style pseudo code. The key change over standard attention is two lines: normalize the value vectors, then subtract their projection from the attention output.
+                    </p>
+                    <div style="width: 100%; display: flex; justify-content: center; overflow-x: auto; padding: 0 1rem; background-color: rgba(224, 224, 224, 0.633); border-radius: 10px;">
+                    <pre style="padding: 1rem;"><code class="language-python"># x: (B,T,D)
+# Wq, Wk, Wv, Wo: (D,D)
+# H: number of heads
+
+def exclusive_self_attention(x, Wq, Wk, Wv, Wo, H):
+    B, T, D = x.shape
+
+    # linear projections
+    Q = (x @ Wq).reshape(B, T, H, D // H).transpose(1, 2)
+    K = (x @ Wk).reshape(B, T, H, D // H).transpose(1, 2)
+    V = (x @ Wv).reshape(B, T, H, D // H).transpose(1, 2)
+
+    # standard multi-head causal attention
+    Y = torch.nn.functional.scaled_dot_product_attention(Q, K, V, is_causal=True)
+
+    # XSA: remove projection of output onto own value direction
+    Vn = torch.nn.functional.normalize(V, dim=-1)
+    Z = Y - (Y * Vn).sum(dim=-1, keepdim=True) * Vn
+
+    # output projection
+    out = Z.transpose(1, 2).reshape(B, T, D) @ Wo
+    return out</code></pre>
+                    </div>
+
+                    <h3>Why not simply zero out the attention weight associated with the own value vector?</h3>
+                    <p>
+                        If we zero out the weight \(a_{i,i}\) associated with \(V_i\), we effectively suppress only the direct influence of token \(i\)'s own value. However, if there are correlated vectors \(V_j\) in the sequence, their attention weights will allow the leakage of redundant information within the attention mechanism, using the capacity of the attention layer to carry information that will arrive anyway via the skip connection.
+                    </p>
+                    <p>
+                        Additionally, due to the nature of the attention mechanism (the softmax function), no matter how irrelevant the other tokens' keys are for a given query, the model must distribute all of its attention across them. The attention sink allows the currently observed token to aggregate excess attention and redirect it to itself without forcing that attention onto irrelevant tokens.
+                    </p>
+
+
+                    <h2>Resources</h2>
+                    <ul style="line-height: 1.8; list-style-type: none; margin: 0; padding-left: 25px;">
+                        <li>[1] <a href="https://www.youtube.com/watch?v=2eZKT4H9_iQ" target="_blank">youtube.com/watch?v=2eZKT4H9_iQ</a></li>
+                        <li>[2] <a href="https://doi.org/10.48550/arXiv.2603.09078" target="_blank">Zhai, S. (2026). Exclusive Self Attention. arXiv:2603.09078</a></li>
+                    </ul>
+
+                </section>
+            </article>
+        </main>
+        <footer>
+            <div>
+                <div class="networks">
+                    <ul>
+                        <li>
+                            <a href="https://github.com/lazarzivanovicc" target="_blank">
+                                Github
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.linkedin.com/in/lazar-zivanovic-11739996/" target="_blank">
+                                LinkedIn
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://mndlabs.io/" target="_blank">
+                                mndlabs
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <p>&copy; 2026 Lazar Zivanovic. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+    <script>
+        document.querySelectorAll("pre code").forEach(block => {
+            const lines = block.textContent.replace(/^\n+|\n+$/g, "").split("\n");
+            const indent = Math.min(
+                ...lines.filter(l => l.trim()).map(l => l.match(/^\s*/)[0].length)
+            );
+            block.textContent = lines.map(l => l.slice(indent)).join("\n");
+        });
+    </script>
+</body>
+</html>
