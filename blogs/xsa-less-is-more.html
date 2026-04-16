@@ -98,7 +98,13 @@
                     <p>
                         Tokens do not enter the exchange of information with an open mind, or potentially ask a question for which they themselves have the most suitable key, so they potentially are the ones that influence the modification of their own representation (them or the tokens that have very highly correlated \(v_j\)) the most. This is problematic because the goal of the attention mechanism is the exchange of information between tokens within the context. An effective communication mechanism should gather as much information as possible from neighboring tokens. Within the communication mechanism, a token should not be confirming its own views but rather listening to its neighbors that carry information unknown to it.
                     </p>
-
+                    <figure style="margin: 1.5rem 0; text-align: center;">
+                        <img src="../assets/attentionbias.png" alt="Attention bias visualization" style="max-width: 100%; height: auto;">
+                        <figcaption style="margin-top: 0.5rem; font-size: 0.85em; color: #666;">Figure from <a href="https://doi.org/10.48550/arXiv.2603.09078" target="_blank">Zhai, S. (2026). Exclusive Self Attention. arXiv:2603.09078</a></figcaption>
+                    </figure>
+                    <p>
+                        We can see that as we go deeper through layers \(y_i\) starts to take more information from \(v_i\) self value vector, essentially ignoring the information from other tokens and wasting attentions information exchange capacity.
+                    </p>
                     <h3>What is the role of the FFN that follows the attention layer?</h3>
                     <p>
                         This is where the token can and should think about its own meaning, isolated from its context. Having previously gathered information from tokens in its context and accumulated it through the skip connection onto its initial representation, in the Feed Forward Network the token independently processes and integrates everything into a new context-enriched representation.
@@ -118,7 +124,7 @@
                         $$
                     </div>
                     <p>
-                        Note that the above explanation used \(\mathbb{R}^3\) for illustrative purposes. In practice, these vectors reside in a much higher-dimensional space, but the computation of \(z_i\) and the geometric intuition remain exactly the same.
+                        Note that explanation here used \(\mathbb{R}^3\) for the purposes of explanation. These vector actully reside in a much higher dimensional space, but the way we calculate \(z_i\) and analogy stay the same.
                     </p>
                     <h3>How does this look in code?</h3>
                     <p>
